@@ -39,8 +39,7 @@ namespace CompareThis
                 {
                     // (someclass.IntContains.ToString().Contains(filter))
                     var callIntToString = Expression.Call(propExpressions, intToStringMethod);
-                    var contains = Expression.Call(callIntToString, stringContainsMethod, parameterFilter);
-                    finalExpression = Expression.IsTrue(contains);
+                    finalExpression = Expression.Call(callIntToString, stringContainsMethod, parameterFilter);
                 }
                 else if (prop[i].PropertyType == typeof(string))
                 {
@@ -59,12 +58,9 @@ namespace CompareThis
 
                     var valueExpression = Expression.Property(
                         propExpressions, nullDateTimeProperties.Where(p => p.Name == "Value").First());
-
-                    var dateTimeIsNotNull = Expression.IsTrue(hasValueExpression);
                     var callDateTimeToString = Expression.Call(valueExpression, dateTimeToString);
                     var contains = Expression.Call(callDateTimeToString, stringContainsMethod, parameterFilter);
-                    var notNullAndContains = Expression.AndAlso(dateTimeIsNotNull, contains);
-                    finalExpression = Expression.IsTrue(notNullAndContains);
+                    finalExpression = Expression.AndAlso(hasValueExpression, contains);
                 }
 
                 finalPropertyCompare[i] = finalExpression;
