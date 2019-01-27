@@ -1,0 +1,28 @@
+BenchmarkDotNet=v0.11.3, OS=Windows 10.0.17134.472 (1803/April2018Update/Redstone4)
+Intel Core i5-6400 CPU 2.70GHz (Skylake), 1 CPU, 4 logical and 4 physical cores
+Frequency=2648445 Hz, Resolution=377.5801 ns, Timer=TSC
+  [Host]     : .NET Framework 4.7.2 (CLR 4.0.30319.42000), 32bit LegacyJIT-v4.7.3260.0
+  DefaultJob : .NET Framework 4.7.2 (CLR 4.0.30319.42000), 32bit LegacyJIT-v4.7.3260.0
+
+
+                                        Method |       Mean |     Error |    StdDev |
+---------------------------------------------- |-----------:|----------:|----------:|
+             BasingOnProperties_ManyProperties | 1,726.2 ns | 0.5180 ns | 0.4592 ns |
+       BasinOnFuncInsideOfClass_ManyProperties |   728.8 ns | 2.6041 ns | 2.4359 ns |
+ UsingCompiledExpressonTreeFunc_ManyProperties |   833.0 ns | 0.2032 ns | 0.1801 ns |
+          UsingExternalFunction_ManyProperties |   729.1 ns | 2.7122 ns | 2.5370 ns |
+
+// * Hints *
+Outliers
+  ManyPropertiesBenchmark.BasingOnProperties_ManyProperties: Default -> 1 outlier  was  removed
+
+// * Legends *
+  Mean   : Arithmetic mean of all measurements
+  Error  : Half of 99.9% confidence interval
+  StdDev : Standard deviation of all measurements
+  1 ns   : 1 Nanosecond (0.000000001 sec)
+
+// ***** BenchmarkRunner: End *****
+Run time: 00:01:22 (83 sec), executed benchmarks: 4
+
+// * Artifacts cleanup *

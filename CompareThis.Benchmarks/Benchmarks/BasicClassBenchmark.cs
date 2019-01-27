@@ -2,11 +2,7 @@
 using CompareThis.Utilities.DataGenerator;
 using CompareThis.Utilities.ExampleClass;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CompareThis.Benchmarks.Benchmarks
 {
@@ -15,7 +11,12 @@ namespace CompareThis.Benchmarks.Benchmarks
     public class BasicClassBenchmark
     {
         private string Filter = "123";
-        private BasicClass BasicClassForTest = DataGenerator.GetBasicClass(1)[0];
+        private BasicClass BasicClassForTest = new BasicClass()
+        {
+            DateTimeProperty = DateTime.Now,
+            IntProperty = 321,
+            StringProperty = "SOME STRING"
+        };
 
         private static PropertyInfo[] Properties = typeof(BasicClass).GetProperties();
 
@@ -64,5 +65,6 @@ namespace CompareThis.Benchmarks.Benchmarks
         {
             return ExternalCompare(BasicClassForTest, Filter);
         }
+
     }
 }

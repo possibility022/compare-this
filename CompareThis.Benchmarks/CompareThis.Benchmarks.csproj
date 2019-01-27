@@ -180,6 +180,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Benchmarks\BasicClassBenchmark.cs" />
+    <Compile Include="Benchmarks\ManyPropertiesBenchmark.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -12,8 +12,10 @@ namespace CompareThis.Benchmarks
     {
         static void Main(string[] args)
         {
-            BenchmarkRunner.Run<BasicClassBenchmark>();
+            var results = BenchmarkRunner.Run<BasicClassBenchmark>();
+            Console.ReadLine();
 
+            results = BenchmarkRunner.Run<ManyPropertiesBenchmark>();
             Console.ReadLine();
         }
     }

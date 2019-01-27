@@ -1,0 +1,29 @@
+BenchmarkDotNet=v0.11.3, OS=Windows 10.0.17134.472 (1803/April2018Update/Redstone4)
+Intel Core i5-6400 CPU 2.70GHz (Skylake), 1 CPU, 4 logical and 4 physical cores
+Frequency=2648445 Hz, Resolution=377.5801 ns, Timer=TSC
+  [Host]     : .NET Framework 4.7.2 (CLR 4.0.30319.42000), 32bit LegacyJIT-v4.7.3260.0
+  DefaultJob : .NET Framework 4.7.2 (CLR 4.0.30319.42000), 32bit LegacyJIT-v4.7.3260.0
+
+
+                         Method |     Mean |     Error |    StdDev | Rank |
+------------------------------- |---------:|----------:|----------:|-----:|
+             BasingOnProperties | 1.642 us | 0.0079 us | 0.0074 us |    3 |
+       BasinOnFuncInsideOfClass | 1.137 us | 0.0022 us | 0.0017 us |    1 |
+ UsingCompiledExpressonTreeFunc | 1.197 us | 0.0067 us | 0.0062 us |    2 |
+          UsingExternalFunction | 1.145 us | 0.0041 us | 0.0039 us |    1 |
+
+// * Hints *
+Outliers
+  BasicClassBenchmark.BasinOnFuncInsideOfClass: Default -> 3 outliers were removed
+
+// * Legends *
+  Mean   : Arithmetic mean of all measurements
+  Error  : Half of 99.9% confidence interval
+  StdDev : Standard deviation of all measurements
+  Rank   : Relative position of current benchmark mean among all benchmarks (Arabic style)
+  1 us   : 1 Microsecond (0.000001 sec)
+
+// ***** BenchmarkRunner: End *****
+Run time: 00:01:07 (67.17 sec), executed benchmarks: 4
+
+// * Artifacts cleanup *
