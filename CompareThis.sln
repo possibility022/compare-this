@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompareThis.UnitTests", "Co
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompareThis.Utilities", "CompareThis.Utilities\CompareThis.Utilities.csproj", "{EDD32C5A-8CF9-4F93-B169-2D2B2210EB48}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompareThis.Benchmarks", "CompareThis.Benchmarks\CompareThis.Benchmarks.csproj", "{5B1FB63E-02A4-4C8D-9E2E-8BDC3BB3FA30}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{EDD32C5A-8CF9-4F93-B169-2D2B2210EB48}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EDD32C5A-8CF9-4F93-B169-2D2B2210EB48}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EDD32C5A-8CF9-4F93-B169-2D2B2210EB48}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5B1FB63E-02A4-4C8D-9E2E-8BDC3BB3FA30}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B1FB63E-02A4-4C8D-9E2E-8BDC3BB3FA30}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B1FB63E-02A4-4C8D-9E2E-8BDC3BB3FA30}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B1FB63E-02A4-4C8D-9E2E-8BDC3BB3FA30}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
