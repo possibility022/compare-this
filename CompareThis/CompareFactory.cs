@@ -62,6 +62,10 @@ namespace CompareThis
                     var contains = Expression.Call(callDateTimeToString, stringContainsMethod, parameterFilter);
                     finalExpression = Expression.AndAlso(hasValueExpression, contains);
                 }
+                else
+                {
+                    throw new NotSupportedException($"Type of {prop[i].PropertyType} is not supported.");
+                }
 
                 finalPropertyCompare[i] = finalExpression;
             }
