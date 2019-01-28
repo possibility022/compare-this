@@ -30,29 +30,7 @@ namespace CompareThis
             for (int i = 0; i < prop.Length; i++)
             {
                 var propExpressions = Expression.Property(parameterSomeClass, prop[i]);
-                Expression finalExpression = null;
-
-                if (prop[i].PropertyType == typeof(int))
-                {
-                    // (someclass.IntContains.ToString().Contains(filter))
-                    finalExpression = typeExpression.GetExpression(typeof(int), parameterFilter, propExpressions);
-                }
-                else if (prop[i].PropertyType == typeof(string))
-                {
-                    // ((someclass.PropA != null) && (someclass.PropA.Contains(filter)))
-                    finalExpression = typeExpression.GetExpression(typeof(string), parameterFilter, propExpressions);
-                }
-                else if (prop[i].PropertyType == typeof(DateTime?))
-                {
-                    // ((someclass.DateTimeProp.HasValue)  && (someclass.DateTimeProp.Value.ToString().Contains(filter)))
-                    finalExpression = typeExpression.GetExpression(typeof(DateTime?), parameterFilter, propExpressions);
-                }
-                else
-                {
-                    throw new NotSupportedException($"Type of {prop[i].PropertyType} is not supported.");
-                }
-
-                finalPropertyCompare[i] = finalExpression;
+                finalPropertyCompare[i] = typeExpression.GetExpression(prop[i].PropertyType, parameterFilter, propExpressions);
             }
 
             Expression final;
