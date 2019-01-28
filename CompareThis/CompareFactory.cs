@@ -8,14 +8,11 @@ namespace CompareThis
     {
         public static Expression<Func<T, string, bool>> BuildContainsExpr<T>()
         {
-            // Methods to call.
-            // string.Contains(param)
-            var stringContainsMethod = typeof(string).GetMethod("Contains", new Type[] { typeof(string) });
-            // int.ToString()
-            var intToStringMethod = typeof(int).GetMethod("ToString", new Type[] { });
-            // DateTimeToString()
-            var dateTimeToString = typeof(DateTime).GetMethod("ToString", new Type[] { });
+            return BuildContainsExpr<T>(new TypeExpression());
+        }
 
+        public static Expression<Func<T, string, bool>> BuildContainsExpr<T>(TypeExpression typeExpression)
+        {
             // Declaring parameters
             var parameterSomeClass = Expression.Parameter(typeof(T), "someclass");
             var parameterFilter = Expression.Parameter(typeof(string), "filter");
@@ -38,14 +35,13 @@ namespace CompareThis
                 if (prop[i].PropertyType == typeof(int))
                 {
                     // (someclass.IntContains.ToString().Contains(filter))
-                    var callIntToString = Expression.Call(propExpressions, intToStringMethod);
-                    finalExpression = Expression.Call(callIntToString, stringContainsMethod, parameterFilter);
+                    finalExpression = typeExpression.GetExpression(typeof(int), parameterFilter, propExpressions);
                 }
                 else if (prop[i].PropertyType == typeof(string))
                 {
                     // ((someclass.PropA != null) && (someclass.PropA.Contains(filter)))
                     var propIsNotNull = Expression.NotEqual(propExpressions, constantNull);
-                    var callContains = Expression.Call(propExpressions, stringContainsMethod, parameterFilter);
+                    var callContains = Expression.Call(propExpressions, typeExpression.stringContainsMethod, parameterFilter);
                     finalExpression = Expression.AndAlso(propIsNotNull, callContains);
                 }
                 else if (prop[i].PropertyType == typeof(DateTime?))
@@ -58,8 +54,8 @@ namespace CompareThis
 
                     var valueExpression = Expression.Property(
                         propExpressions, nullDateTimeProperties.Where(p => p.Name == "Value").First());
-                    var callDateTimeToString = Expression.Call(valueExpression, dateTimeToString);
-                    var contains = Expression.Call(callDateTimeToString, stringContainsMethod, parameterFilter);
+                    var callDateTimeToString = Expression.Call(valueExpression, typeExpression.dateTimeToString);
+                    var contains = Expression.Call(callDateTimeToString, typeExpression.stringContainsMethod, parameterFilter);
                     finalExpression = Expression.AndAlso(hasValueExpression, contains);
                 }
                 else
