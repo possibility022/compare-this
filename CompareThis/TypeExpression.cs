@@ -9,27 +9,27 @@ namespace CompareThis
     {
         // Methods to call.
         // string.Contains(param)
-        public MethodInfo stringContainsMethod { get; } = typeof(string).GetMethod("Contains", new Type[] { typeof(string) });
+        public MethodInfo StringContainsMethod { get; } = typeof(string).GetMethod("Contains", new Type[] { typeof(string) });
         // int.ToString()
-        public MethodInfo intToStringMethod { get; } = typeof(int).GetMethod("ToString", new Type[] { });
+        public MethodInfo IntToStringMethod { get; } = typeof(int).GetMethod("ToString", new Type[] { });
         // DateTimeToString()
-        public MethodInfo dateTimeToString { get; } = typeof(DateTime).GetMethod("ToString", new Type[] { });
+        public MethodInfo DateTimeToString { get; } = typeof(DateTime).GetMethod("ToString", new Type[] { });
 
-        public Expression constantNull { get; } = Expression.Constant(null);
+        public Expression ConstantNull { get; } = Expression.Constant(null);
 
-        public Expression GetExpression(Type type, Expression parameterFilter, Expression propExpressions)
+        public Expression GetExpression(Type type, Expression str, Expression value)
         {
             if (type == typeof(int))
             {
-                return GetIntExpression(parameterFilter, propExpressions);
+                return GetIntExpression(str, value);
             }
             else if (type == typeof(string))
             {
-                return GetStringExpression(parameterFilter, propExpressions);
+                return GetStringExpression(str, value);
             }
             else if (type == typeof(DateTime?))
             {
-                return GetStringExpression(parameterFilter, propExpressions);
+                return GetStringExpression(str, value);
             }
             else
             {
@@ -37,30 +37,30 @@ namespace CompareThis
             }
         }
 
-        public Expression GetIntExpression(Expression parameterFilter, Expression propExpressions)
+        public Expression GetIntExpression(Expression filter, Expression integer)
         {
-            var callIntToString = Expression.Call(propExpressions, intToStringMethod);
-            return Expression.Call(callIntToString, stringContainsMethod, parameterFilter);
+            var callIntToString = Expression.Call(integer, IntToStringMethod);
+            return Expression.Call(callIntToString, StringContainsMethod, filter);
         }
 
-        public Expression GetStringExpression(Expression parameterFilter, Expression propExpressions)
+        public Expression GetStringExpression(Expression filter, Expression str)
         {
-            var propIsNotNull = Expression.NotEqual(propExpressions, constantNull);
-            var callContains = Expression.Call(propExpressions, stringContainsMethod, parameterFilter);
+            var propIsNotNull = Expression.NotEqual(str, ConstantNull);
+            var callContains = Expression.Call(str, StringContainsMethod, filter);
             return Expression.AndAlso(propIsNotNull, callContains);
         }
 
-        public Expression GetNullableDateTimeExpression(Expression parameterFilter, Expression propExpressions)
+        public Expression GetNullableDateTimeExpression(Expression filter, Expression dateTime)
         {
             var nullDateTimeProperties = typeof(DateTime?).GetProperties();
 
             var hasValueExpression = Expression.Property(
-                propExpressions, nullDateTimeProperties.Where(p => p.Name == "HasValue").First());
+                dateTime, nullDateTimeProperties.Where(p => p.Name == "HasValue").First());
 
             var valueExpression = Expression.Property(
-                propExpressions, nullDateTimeProperties.Where(p => p.Name == "Value").First());
-            var callDateTimeToString = Expression.Call(valueExpression, dateTimeToString);
-            var contains = Expression.Call(callDateTimeToString, stringContainsMethod, parameterFilter);
+                dateTime, nullDateTimeProperties.Where(p => p.Name == "Value").First());
+            var callDateTimeToString = Expression.Call(valueExpression, DateTimeToString);
+            var contains = Expression.Call(callDateTimeToString, StringContainsMethod, filter);
             return Expression.AndAlso(hasValueExpression, contains);
         }
     }
