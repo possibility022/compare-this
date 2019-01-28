@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
 
 namespace CompareThis
 {
@@ -28,6 +27,10 @@ namespace CompareThis
             {
                 return GetStringExpression(parameterFilter, propExpressions);
             }
+            else if (type == typeof(DateTime?))
+            {
+                return GetStringExpression(parameterFilter, propExpressions);
+            }
             else
             {
                 throw new NotSupportedException($"Type of {type.FullName} is not supported.");
@@ -45,6 +48,20 @@ namespace CompareThis
             var propIsNotNull = Expression.NotEqual(propExpressions, constantNull);
             var callContains = Expression.Call(propExpressions, stringContainsMethod, parameterFilter);
             return Expression.AndAlso(propIsNotNull, callContains);
+        }
+
+        public Expression GetNullableDateTimeExpression(Expression parameterFilter, Expression propExpressions)
+        {
+            var nullDateTimeProperties = typeof(DateTime?).GetProperties();
+
+            var hasValueExpression = Expression.Property(
+                propExpressions, nullDateTimeProperties.Where(p => p.Name == "HasValue").First());
+
+            var valueExpression = Expression.Property(
+                propExpressions, nullDateTimeProperties.Where(p => p.Name == "Value").First());
+            var callDateTimeToString = Expression.Call(valueExpression, dateTimeToString);
+            var contains = Expression.Call(callDateTimeToString, stringContainsMethod, parameterFilter);
+            return Expression.AndAlso(hasValueExpression, contains);
         }
     }
 }

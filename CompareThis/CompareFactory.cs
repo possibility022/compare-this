@@ -45,16 +45,7 @@ namespace CompareThis
                 else if (prop[i].PropertyType == typeof(DateTime?))
                 {
                     // ((someclass.DateTimeProp.HasValue)  && (someclass.DateTimeProp.Value.ToString().Contains(filter)))
-                    var nullDateTimeProperties = typeof(DateTime?).GetProperties();
-
-                    var hasValueExpression = Expression.Property(
-                        propExpressions, nullDateTimeProperties.Where(p => p.Name == "HasValue").First());
-
-                    var valueExpression = Expression.Property(
-                        propExpressions, nullDateTimeProperties.Where(p => p.Name == "Value").First());
-                    var callDateTimeToString = Expression.Call(valueExpression, typeExpression.dateTimeToString);
-                    var contains = Expression.Call(callDateTimeToString, typeExpression.stringContainsMethod, parameterFilter);
-                    finalExpression = Expression.AndAlso(hasValueExpression, contains);
+                    finalExpression = typeExpression.GetExpression(typeof(DateTime?), parameterFilter, propExpressions);
                 }
                 else
                 {
