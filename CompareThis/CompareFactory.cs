@@ -40,9 +40,7 @@ namespace CompareThis
                 else if (prop[i].PropertyType == typeof(string))
                 {
                     // ((someclass.PropA != null) && (someclass.PropA.Contains(filter)))
-                    var propIsNotNull = Expression.NotEqual(propExpressions, constantNull);
-                    var callContains = Expression.Call(propExpressions, typeExpression.stringContainsMethod, parameterFilter);
-                    finalExpression = Expression.AndAlso(propIsNotNull, callContains);
+                    finalExpression = typeExpression.GetExpression(typeof(string), parameterFilter, propExpressions);
                 }
                 else if (prop[i].PropertyType == typeof(DateTime?))
                 {
