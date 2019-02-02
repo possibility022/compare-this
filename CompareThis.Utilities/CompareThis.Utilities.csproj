@@ -50,6 +50,7 @@
     <Compile Include="DataGenerator\DataGenerator.cs" />
     <Compile Include="ExampleClass\BasicClass.cs" />
     <Compile Include="ExampleClass\ManyProperties.cs" />
+    <Compile Include="ExampleClass\OnePropClass.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
