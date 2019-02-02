@@ -10,17 +10,18 @@ namespace CompareThis
             Expression parameterSomeClass,
             Expression parameterFilter)
         {
-            return BuildContainsExpr<T>(new TypeExpression(), parameterSomeClass, parameterFilter);
+            // Declaring constant
+            var constantNull = Expression.Constant(null);
+            var filterIsNotNull = Expression.NotEqual(parameterFilter, constantNull);
+
+            var contains = BuildContainsExpr<T>(new TypeExpression(), parameterSomeClass, parameterFilter);
+            return Expression.AndAlso(filterIsNotNull, contains);
         }
 
         public static Expression BuildContainsExpr<T>(TypeExpression typeExpression, 
             Expression parameterSomeClass,
             Expression parameterFilter)
         {
-            // Declaring constant
-            var constantNull = Expression.Constant(null);
-            var filterIsNotNull = Expression.NotEqual(parameterFilter, constantNull);
-
             // List of properites
             var prop = typeof(T).GetProperties();
 
@@ -52,7 +53,7 @@ namespace CompareThis
                 }
             }
 
-            return Expression.AndAlso(filterIsNotNull, final);
+            return final;
         }
 
         public static Func<T, string, bool> BuildContainsFunc<T>()
