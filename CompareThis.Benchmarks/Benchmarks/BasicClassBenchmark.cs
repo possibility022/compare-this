@@ -1,5 +1,4 @@
 ﻿using BenchmarkDotNet.Attributes;
-using CompareThis.Utilities.DataGenerator;
 using CompareThis.Utilities.ExampleClass;
 using System;
 using System.Reflection;
@@ -10,7 +9,7 @@ namespace CompareThis.Benchmarks.Benchmarks
     [RPlotExporter, RankColumn]
     public class BasicClassBenchmark
     {
-        private string Filter = "123";
+        private string Filter = "_SOMESTRING_";
         private BasicClass BasicClassForTest = new BasicClass()
         {
             DateTimeProperty = DateTime.Now,

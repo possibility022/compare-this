@@ -4,6 +4,7 @@ using System;
 
 namespace CompareThis.Benchmarks.Benchmarks
 {
+    [RankColumn]
     public class OnePropBenchmark
     {
         OnePropClass onePropClass = new OnePropClass()
@@ -13,7 +14,7 @@ namespace CompareThis.Benchmarks.Benchmarks
 
         Func<OnePropClass, string, bool> CompareThisFunc = CompareFactory.BuildContainsFunc<OnePropClass>();
 
-        string Filter = "123";
+        string Filter = "SOMESTRING";
 
         [Benchmark]
         public bool TestCompareThis()

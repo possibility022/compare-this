@@ -8,7 +8,10 @@ namespace CompareThis.Benchmarks
     {
         static void Main(string[] args)
         {
-            var results = BenchmarkRunner.Run<OnePropBenchmark>();
+            var results = BenchmarkRunner.Run<ClassWithOtherClassCompare>();
+            Console.ReadLine();
+
+            results = BenchmarkRunner.Run<OnePropBenchmark>();
             Console.ReadLine();
 
             results = BenchmarkRunner.Run<BasicClassBenchmark>();

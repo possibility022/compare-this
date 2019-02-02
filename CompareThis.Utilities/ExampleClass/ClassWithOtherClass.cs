@@ -13,7 +13,7 @@
 
         public bool Filter (string filter)
         {
-            return ((BaseClass.Filter(filter) || ManyPropClass.Filter(filter))
+            return (BaseClass.Filter(filter) || ManyPropClass.Filter(filter)
                 ||
                 (string.IsNullOrEmpty(filter) == false && (someInt.ToString().Contains(filter) || someString.Contains(filter))));
         }

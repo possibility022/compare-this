@@ -6,10 +6,11 @@ using System.Reflection;
 
 namespace CompareThis.Benchmarks.Benchmarks
 {
+    [RankColumn]
     public class ManyPropertiesBenchmark
     {
 
-        private string Filter = "123";
+        private string Filter = "_SOMESTRING_";
 
         public bool ExternalCompare(ManyProperties manyProperties, string filter)
         {
