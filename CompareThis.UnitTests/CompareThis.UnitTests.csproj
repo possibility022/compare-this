@@ -51,6 +51,7 @@
   <ItemGroup>
     <Compile Include="CompareFactory_BuildContainsExpr_Tests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="CompareDeepClass_Tests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

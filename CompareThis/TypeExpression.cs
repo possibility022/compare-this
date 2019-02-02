@@ -29,7 +29,15 @@ namespace CompareThis
             }
             else if (type == typeof(DateTime?))
             {
-                return GetStringExpression(str, value);
+                return GetNullableDateTimeExpression(str, value);
+            }
+            else if (type.IsClass)
+            {
+                var method = typeof(CompareFactory)
+                    .GetMethod("BuildContainsExpr", new Type[] { typeof(Expression), typeof(Expression) });
+
+                var genericMethod = method.MakeGenericMethod(type);
+                return (Expression)genericMethod.Invoke(null, new object[] { value, str });
             }
             else
             {

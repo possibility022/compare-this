@@ -6,17 +6,17 @@ namespace CompareThis
 {
     public class CompareFactory
     {
-        public static Expression<Func<T, string, bool>> BuildContainsExpr<T>()
+        public static Expression BuildContainsExpr<T>(
+            Expression parameterSomeClass,
+            Expression parameterFilter)
         {
-            return BuildContainsExpr<T>(new TypeExpression());
+            return BuildContainsExpr<T>(new TypeExpression(), parameterSomeClass, parameterFilter);
         }
 
-        public static Expression<Func<T, string, bool>> BuildContainsExpr<T>(TypeExpression typeExpression)
+        public static Expression BuildContainsExpr<T>(TypeExpression typeExpression, 
+            Expression parameterSomeClass,
+            Expression parameterFilter)
         {
-            // Declaring parameters
-            var parameterSomeClass = Expression.Parameter(typeof(T), "someclass");
-            var parameterFilter = Expression.Parameter(typeof(string), "filter");
-
             // Declaring constant
             var constantNull = Expression.Constant(null);
             var filterIsNotNull = Expression.NotEqual(parameterFilter, constantNull);
@@ -52,13 +52,16 @@ namespace CompareThis
                 }
             }
 
-            final = Expression.AndAlso(filterIsNotNull, final);
-            return Expression.Lambda<Func<T, string, bool>>(final, parameterSomeClass, parameterFilter);
+            return Expression.AndAlso(filterIsNotNull, final);
         }
 
         public static Func<T, string, bool> BuildContainsFunc<T>()
         {
-            return BuildContainsExpr<T>().Compile();
+            // Declaring parameters
+            var parameterSomeClass = Expression.Parameter(typeof(T), "someclass");
+            var parameterFilter = Expression.Parameter(typeof(string), "filter");
+            var final = BuildContainsExpr<T>(parameterSomeClass, parameterFilter);
+            return Expression.Lambda<Func<T, string, bool>>(final, parameterSomeClass, parameterFilter).Compile();
         }
     }
 }
