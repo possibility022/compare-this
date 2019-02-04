@@ -6,6 +6,8 @@
 
         public ManyProperties ManyPropClass { get; set; }
 
+        public ClassWithCollection ClassWithCollection { get; set; }
+
         public int someInt { get; set; }
 
         public string someString { get; set; }
@@ -17,6 +19,5 @@
                 ||
                 (string.IsNullOrEmpty(filter) == false && (someInt.ToString().Contains(filter) || someString.Contains(filter))));
         }
-
     }
 }

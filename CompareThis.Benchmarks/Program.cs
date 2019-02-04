@@ -8,16 +8,19 @@ namespace CompareThis.Benchmarks
     {
         static void Main(string[] args)
         {
-            var results = BenchmarkRunner.Run<ClassWithOtherClassCompare>();
+            BenchmarkRunner.Run<CollectionBenchmark>();
             Console.ReadLine();
 
-            results = BenchmarkRunner.Run<OnePropBenchmark>();
+            BenchmarkRunner.Run<ClassWithOtherClassCompare>();
             Console.ReadLine();
 
-            results = BenchmarkRunner.Run<BasicClassBenchmark>();
+            BenchmarkRunner.Run<OnePropBenchmark>();
             Console.ReadLine();
 
-            results = BenchmarkRunner.Run<ManyPropertiesBenchmark>();
+            BenchmarkRunner.Run<BasicClassBenchmark>();
+            Console.ReadLine();
+
+            BenchmarkRunner.Run<ManyPropertiesBenchmark>();
             Console.ReadLine();
         }
     }

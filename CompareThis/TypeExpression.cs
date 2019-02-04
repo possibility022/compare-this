@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -16,6 +18,8 @@ namespace CompareThis
         public MethodInfo DateTimeToString { get; } = typeof(DateTime).GetMethod("ToString", new Type[] { });
 
         public Expression ConstantNull { get; } = Expression.Constant(null);
+        public Expression ConstantTrue { get; } = Expression.Constant(true);
+        public Expression ConstantFalse { get; } = Expression.Constant(false);
 
         public Expression GetExpression(Type type, Expression str, Expression value)
         {
@@ -31,6 +35,12 @@ namespace CompareThis
             {
                 return GetNullableDateTimeExpression(str, value);
             }
+            else if (
+                type.GetInterfaces()
+                .Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEnumerable<>)))
+            {
+                return GetEnumerableExpression(str, value, type);
+            }
             else if (type.IsClass)
             {
                 var method = typeof(CompareFactory)
@@ -43,6 +53,43 @@ namespace CompareThis
             {
                 throw new NotSupportedException($"Type of {type.FullName} is not supported.");
             }
+        }
+
+        public Expression GetEnumerableExpression(Expression filter, Expression collection, Type collectionType)
+        {
+            var genericType = collectionType.GetGenericArguments()[0];
+            var enumerableType = typeof(IEnumerable<>).MakeGenericType(genericType);
+            var enumeratorType = typeof(IEnumerator<>).MakeGenericType(genericType);
+
+            var value = Expression.Parameter(genericType, "value");
+
+            var enumeratorVar = Expression.Variable(enumeratorType, "enumerator");
+            var getEnumeratorCall = Expression.Call(collection, enumerableType.GetMethod("GetEnumerator"));
+            var enumeratorAssign = Expression.Assign(enumeratorVar, getEnumeratorCall);
+
+            var contectOfLoop = GetExpression(genericType, filter, value);
+
+            var moveNextCall = Expression.Call(enumeratorVar, typeof(IEnumerator).GetMethod("MoveNext"));
+
+            var breakLabel = Expression.Label(typeof(bool));
+
+            var loop = Expression.Block(new[] { enumeratorVar },
+                enumeratorAssign,
+                Expression.Loop(
+                    Expression.IfThenElse(
+                        Expression.IsTrue(moveNextCall),
+                        Expression.Block(new[] { value },
+                            Expression.Assign(value, Expression.Property(enumeratorVar, "Current")),
+                            Expression.IfThen(
+                                Expression.IsTrue(contectOfLoop),
+                                Expression.Return(breakLabel, ConstantTrue))
+                        ),
+                        Expression.Return(breakLabel, ConstantFalse)
+                    ),
+                breakLabel)
+            );
+
+            return loop;
         }
 
         public Expression GetIntExpression(Expression filter, Expression integer)

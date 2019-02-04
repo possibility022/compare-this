@@ -181,6 +181,7 @@
   <ItemGroup>
     <Compile Include="Benchmarks\BasicClassBenchmark.cs" />
     <Compile Include="Benchmarks\ClassWithOtherClassBenchamrk.cs" />
+    <Compile Include="Benchmarks\CollectionBenchmark.cs" />
     <Compile Include="Benchmarks\ManyPropertiesBenchmark.cs" />
     <Compile Include="Benchmarks\OnePropBenchmark.cs" />
     <Compile Include="Program.cs" />
