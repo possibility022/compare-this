@@ -34,5 +34,12 @@ namespace CompareThis.UnitTests
             Assert.IsTrue(FilterFunc(Class, Filter));
         }
 
+        [TestMethod]
+        public void PropertyIsNull()
+        {
+            Class.SomeCollection = null;
+            Assert.IsFalse(FilterFunc(Class, Filter));
+        }
+
     }
 }

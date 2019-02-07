@@ -88,8 +88,8 @@ namespace CompareThis
                     ),
                 breakLabel)
             );
-
-            return loop;
+            
+            return Expression.AndAlso(Expression.NotEqual(collection, ConstantNull), loop);
         }
 
         public Expression GetIntExpression(Expression filter, Expression integer)
