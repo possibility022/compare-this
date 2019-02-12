@@ -12,12 +12,14 @@ namespace CompareThis.UnitTests
 
         const string Filter = "FILTER!";
 
+        Func<ClassWithOtherClass, string, bool> CompareThisFunc = CompareFactory.BuildContainsFunc<ClassWithOtherClass>();
+
         [TestInitialize]
         public void TestInit()
         {
             Class = DataGenerator.GetFilledUpClassWithOtherClasses();
         }
-               
+
         [TestMethod]
         public void ThisMustBeTrue()
         {
@@ -27,10 +29,13 @@ namespace CompareThis.UnitTests
         [TestMethod]
         public void CompareThisReturnsTrue()
         {
-            var compareFunc = CompareFactory.BuildContainsFunc<ClassWithOtherClass>();
+            Assert.IsTrue(CompareThisFunc(Class, Filter));
+        }
 
-            Assert.IsTrue(compareFunc(Class, Filter));
-
+        [TestMethod]
+        public void CompareThisReturnsTrue_CheckNullableClass()
+        {
+            Assert.IsTrue(CompareThisFunc(Class, Class.ClassWithNullables.NullableInt.ToString()));
         }
     }
 }

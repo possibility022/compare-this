@@ -51,8 +51,16 @@ namespace CompareThis.Utilities.DataGenerator
 
                 ClassWithCollection = GetClassWithCollection(),
 
-                someInt = 321,
-                someString = "some string : |"
+                ClassWithNullables = new ClassWithNullables()
+                {
+                    NullableBool = false,
+                    NullableByte = 0x11,
+                    NullableDateTime = new DateTime(2000,10,10),
+                    NullableInt = 321321321
+                },
+
+                SomeInt = 321,
+                SomeString = "some string : |"
             };
         }
 
