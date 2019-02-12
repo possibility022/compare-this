@@ -16,30 +16,61 @@ namespace CompareThis
         public MethodInfo IntToStringMethod { get; } = typeof(int).GetMethod("ToString", new Type[] { });
         // DateTimeToString()
         public MethodInfo DateTimeToString { get; } = typeof(DateTime).GetMethod("ToString", new Type[] { });
+        // byte.ToString()
+        public MethodInfo ByteToStringMethod { get; } = typeof(byte).GetMethod("ToString", new Type[] { });
+        // bool.ToString()
+        public MethodInfo BoolToStringMethod { get; } = typeof(bool).GetMethod("ToString", new Type[] { });
 
         public Expression ConstantNull { get; } = Expression.Constant(null);
         public Expression ConstantTrue { get; } = Expression.Constant(true);
         public Expression ConstantFalse { get; } = Expression.Constant(false);
 
-        public Expression GetExpression(Type type, Expression str, Expression value)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="stringValue">For example filter.</param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public Expression GetExpression(Type type, Expression stringValue, Expression value)
         {
             if (type == typeof(int))
             {
-                return GetIntExpression(str, value);
+                return GetIntExpression(stringValue, value);
             }
             else if (type == typeof(string))
             {
-                return GetStringExpression(str, value);
+                return GetStringExpression(stringValue, value);
             }
-            else if (type == typeof(DateTime?))
+            else if (type == typeof(DateTime))
             {
-                return GetNullableDateTimeExpression(str, value);
+                return GetDateTimeExpression(stringValue, value);
+            }
+            else if (type == typeof(byte))
+            {
+                return GetByteExpression(stringValue, value);
+            }
+            else if (type == typeof(bool))
+            {
+                return GetBoolExpression(stringValue, value);
+            }
+            else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            {
+                var hasValueProperty = type.GetProperty("HasValue");
+                var valueProperty = type.GetProperty("Value");
+
+                var hasValuePropertyExpression = Expression.Property(value, hasValueProperty);
+                var valuePropertyExpressionExpression = Expression.Property(value, valueProperty);
+
+                return Expression.AndAlso(
+                    hasValuePropertyExpression, // LEFT
+                    GetExpression(Nullable.GetUnderlyingType(type), stringValue, valuePropertyExpressionExpression)); // RIGHT
             }
             else if (
                 type.GetInterfaces()
                 .Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEnumerable<>)))
             {
-                return GetEnumerableExpression(str, value, type);
+                return GetEnumerableExpression(stringValue, value, type);
             }
             else if (type.IsClass)
             {
@@ -47,12 +78,24 @@ namespace CompareThis
                     .GetMethod("BuildContainsExpr", new Type[] { typeof(Expression), typeof(Expression) });
 
                 var genericMethod = method.MakeGenericMethod(type);
-                return (Expression)genericMethod.Invoke(null, new object[] { value, str });
+                return (Expression)genericMethod.Invoke(null, new object[] { value, stringValue });
             }
             else
             {
                 throw new NotSupportedException($"Type of {type.FullName} is not supported.");
             }
+        }
+
+        private Expression GetBoolExpression(Expression filter, Expression @bool)
+        {
+            var callBoolToString = Expression.Call(@bool, BoolToStringMethod);
+            return Expression.Call(callBoolToString, StringContainsMethod, filter);
+        }
+
+        private Expression GetByteExpression(Expression filter, Expression @byte)
+        {
+            var callByteToString = Expression.Call(@byte, ByteToStringMethod);
+            return Expression.Call(callByteToString, StringContainsMethod, filter);
         }
 
         public Expression GetEnumerableExpression(Expression filter, Expression collection, Type collectionType)
@@ -105,18 +148,10 @@ namespace CompareThis
             return Expression.AndAlso(propIsNotNull, callContains);
         }
 
-        public Expression GetNullableDateTimeExpression(Expression filter, Expression dateTime)
+        public Expression GetDateTimeExpression(Expression filter, Expression dateTime)
         {
-            var nullDateTimeProperties = typeof(DateTime?).GetProperties();
-
-            var hasValueExpression = Expression.Property(
-                dateTime, nullDateTimeProperties.Where(p => p.Name == "HasValue").First());
-
-            var valueExpression = Expression.Property(
-                dateTime, nullDateTimeProperties.Where(p => p.Name == "Value").First());
-            var callDateTimeToString = Expression.Call(valueExpression, DateTimeToString);
-            var contains = Expression.Call(callDateTimeToString, StringContainsMethod, filter);
-            return Expression.AndAlso(hasValueExpression, contains);
+            var callDateTimeToString = Expression.Call(dateTime, DateTimeToString);
+            return Expression.Call(callDateTimeToString, StringContainsMethod, filter);
         }
     }
 }

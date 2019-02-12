@@ -15,38 +15,69 @@ namespace CompareThis.UnitTests
     public class CompareFactory_TestNullable
     {
         private const string PropertyName = "NullableDateTime";
+        ClassWithNullables nullableClass;
+        Func<ClassWithNullables, string, bool> CompareThisFunc;
 
-        [TestMethod]
-        public void TestCustomMethod_ReturnTrue()
+        [TestInitialize]
+        public void TestInit()
         {
-            var testClass = new ClassWithNullables() { NullableDateTime = new DateTime(2000, 10, 10) };
-            var prop = testClass.GetType().GetProperty(PropertyName);
+            nullableClass = new ClassWithNullables();
 
-            Assert.IsTrue(Test(prop, testClass));
+            CompareThisFunc = CompareFactory.BuildContainsFunc<ClassWithNullables>();
         }
 
         [TestMethod]
-        public void TestCustomMethod_ReturnFalse()
+        public void TestNullable_BoolContains()
         {
-            var testClass = new ClassWithNullables() { };
-            var prop = testClass.GetType().GetProperty(PropertyName);
+            // Arrange
+            nullableClass.NullableBool = false;
 
-            Assert.IsFalse(Test(prop, testClass));
+            // Act
+            var results = CompareThisFunc.Invoke(nullableClass, false.ToString());
+
+            //Assert
+            Assert.IsTrue(results);
         }
 
-        // The idea is to "translate" this to expression.
-        public bool Test(PropertyInfo prop, object o)
+        [TestMethod]
+        public void TestNullable_DateTimeContains()
         {
-            if (!prop.PropertyType.IsGenericType || prop.PropertyType.GetGenericTypeDefinition() != typeof(Nullable<>))
-                return false;
+            // Arrange
+            var dateTime = new DateTime(2000, 10, 10);
+            nullableClass.NullableDateTime = dateTime;
 
+            // Act
+            var results = CompareThisFunc.Invoke(nullableClass, dateTime.ToString());
 
-            var val = prop.GetValue(o);
-
-            return val != null;
-            // Expression
+            //Assert
+            Assert.IsTrue(results);
         }
 
+        [TestMethod]
+        public void TestNullable_ByteContains()
+        {
+            // Arrange
+            nullableClass.NullableByte = 0x1;
+
+            // Act
+            var results = CompareThisFunc.Invoke(nullableClass, 0x1.ToString());
+
+            //Assert
+            Assert.IsTrue(results);
+        }
+
+        [TestMethod]
+        public void TestNullable_IntContains()
+        {
+            // Arrange
+            nullableClass.NullableInt = 111111;
+
+            // Act
+            var results = CompareThisFunc.Invoke(nullableClass, 111111.ToString());
+
+            //Assert
+            Assert.IsTrue(results);
+        }
 
 
     }
