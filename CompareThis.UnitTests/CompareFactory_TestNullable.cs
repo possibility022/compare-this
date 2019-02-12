@@ -14,12 +14,12 @@ namespace CompareThis.UnitTests
     [TestClass]
     public class CompareFactory_TestNullable
     {
-        private const string PropertyName = "DateTimeProperty";
+        private const string PropertyName = "NullableDateTime";
 
         [TestMethod]
         public void TestCustomMethod_ReturnTrue()
         {
-            var testClass = new BasicClass() { DateTimeProperty = new DateTime(2000, 10, 10) };
+            var testClass = new ClassWithNullables() { NullableDateTime = new DateTime(2000, 10, 10) };
             var prop = testClass.GetType().GetProperty(PropertyName);
 
             Assert.IsTrue(Test(prop, testClass));
@@ -28,7 +28,7 @@ namespace CompareThis.UnitTests
         [TestMethod]
         public void TestCustomMethod_ReturnFalse()
         {
-            var testClass = new BasicClass() { };
+            var testClass = new ClassWithNullables() { };
             var prop = testClass.GetType().GetProperty(PropertyName);
 
             Assert.IsFalse(Test(prop, testClass));
