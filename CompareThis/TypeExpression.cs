@@ -7,6 +7,25 @@ using System.Reflection;
 
 namespace CompareThis
 {
+
+    class DebugHelper
+    {
+        public void WriteLine(string value)
+        {
+            Console.WriteLine(value);
+        }
+
+        public void WriteLine(int value)
+        {
+            Console.WriteLine(value);
+        }
+
+        public void WriteLine(bool value)
+        {
+            Console.WriteLine(value);
+        }
+    }
+
     public class TypeExpression
     {
         // Methods to call.
@@ -20,7 +39,14 @@ namespace CompareThis
         public MethodInfo ByteToStringMethod { get; } = typeof(byte).GetMethod("ToString", new Type[] { });
         // bool.ToString()
         public MethodInfo BoolToStringMethod { get; } = typeof(bool).GetMethod("ToString", new Type[] { });
+        // Console.WriteLine()
+        public MethodInfo ConsoleWriteLine { get; } = typeof(DebugHelper).GetMethod("WriteLine", new Type[] { typeof(int) });
+        public MethodInfo ConsoleWriteLine_Bool { get; } = typeof(DebugHelper).GetMethod("WriteLine", new Type[] { typeof(bool) });
 
+
+
+        public Expression ConstantZero { get; } = Expression.Constant(0);
+        public Expression ConstantOne { get; } = Expression.Constant(1);
         public Expression ConstantNull { get; } = Expression.Constant(null);
         public Expression ConstantTrue { get; } = Expression.Constant(true);
         public Expression ConstantFalse { get; } = Expression.Constant(false);
@@ -50,21 +76,17 @@ namespace CompareThis
             {
                 return GetByteExpression(stringValue, value);
             }
+            else if (type.IsArray)
+            {
+                return GetArrayExpression(type, stringValue, value);
+            }
             else if (type == typeof(bool))
             {
                 return GetBoolExpression(stringValue, value);
             }
             else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
             {
-                var hasValueProperty = type.GetProperty("HasValue");
-                var valueProperty = type.GetProperty("Value");
-
-                var hasValuePropertyExpression = Expression.Property(value, hasValueProperty);
-                var valuePropertyExpressionExpression = Expression.Property(value, valueProperty);
-
-                return Expression.AndAlso(
-                    hasValuePropertyExpression, // LEFT
-                    GetExpression(Nullable.GetUnderlyingType(type), stringValue, valuePropertyExpressionExpression)); // RIGHT
+                return GetNullableExpression(type, stringValue, value);
             }
             else if (
                 type.GetInterfaces()
@@ -86,13 +108,65 @@ namespace CompareThis
             }
         }
 
-        private Expression GetBoolExpression(Expression filter, Expression @bool)
+        public Expression GetNullableExpression(Type type, Expression stringValue, Expression value)
+        {
+            var hasValueProperty = type.GetProperty("HasValue");
+            var valueProperty = type.GetProperty("Value");
+
+            var hasValuePropertyExpression = Expression.Property(value, hasValueProperty);
+            var valuePropertyExpressionExpression = Expression.Property(value, valueProperty);
+
+            return Expression.AndAlso(
+                hasValuePropertyExpression, // LEFT
+                GetExpression(Nullable.GetUnderlyingType(type), stringValue, valuePropertyExpressionExpression)); // RIGHT
+        }
+
+        private Expression GetArrayExpression(Type type, Expression filter, Expression array)
+        {
+            var arrayContentType = type.GetElementType();
+
+            var i = Expression.Parameter(typeof(int), "i");
+            var length = Expression.Parameter(typeof(int), "lenght");
+            var lengthPropExpression = Expression.Property(array, type.GetProperty("Length"));
+
+            var condition = Expression.LessThan(i, length);
+            var value = Expression.ArrayAccess(array, i);
+
+            var loopContent = GetExpression(arrayContentType, filter, value);
+
+            var breakLabel = Expression.Label(typeof(bool));
+
+            var loop = Expression.Block(new[] { i, length },
+                Expression.Assign(length, lengthPropExpression),
+                Expression.Assign(i, ConstantZero),
+                Expression.Call(Expression.New(typeof(DebugHelper)), ConsoleWriteLine, length),
+                Expression.Loop(
+                    Expression.IfThenElse(
+                        Expression.LessThan(i, length),
+                        Expression.Block(
+                            Expression.IfThen(
+                                Expression.IsTrue(loopContent),
+                                Expression.Return(breakLabel, ConstantTrue)),
+                            Expression.Assign(i, Expression.Add(i, ConstantOne))
+                        ),
+                        Expression.Block(new[] { i },
+                        Expression.Call(Expression.New(typeof(DebugHelper)), ConsoleWriteLine, ConstantOne),
+                        Expression.Return(breakLabel, ConstantFalse)
+                        )
+                    ),
+                breakLabel)
+            );
+
+            return Expression.AndAlso(Expression.NotEqual(array, ConstantNull), loop);
+        }
+
+        public Expression GetBoolExpression(Expression filter, Expression @bool)
         {
             var callBoolToString = Expression.Call(@bool, BoolToStringMethod);
             return Expression.Call(callBoolToString, StringContainsMethod, filter);
         }
 
-        private Expression GetByteExpression(Expression filter, Expression @byte)
+        public Expression GetByteExpression(Expression filter, Expression @byte)
         {
             var callByteToString = Expression.Call(@byte, ByteToStringMethod);
             return Expression.Call(callByteToString, StringContainsMethod, filter);
@@ -131,7 +205,7 @@ namespace CompareThis
                     ),
                 breakLabel)
             );
-            
+
             return Expression.AndAlso(Expression.NotEqual(collection, ConstantNull), loop);
         }
 

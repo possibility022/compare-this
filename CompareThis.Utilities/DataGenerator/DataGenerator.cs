@@ -66,14 +66,34 @@ namespace CompareThis.Utilities.DataGenerator
 
         public static ClassWithCollection GetClassWithCollection(int collectionSize = 100)
         {
-            var list = new List<string>();
-            for (int i = 0; i < collectionSize; i++)
-                list.Add(RandomString(10));
-
             return new ClassWithCollection()
             {
-                SomeCollection = list
+                SomeCollection = GetListOfRandomStrings(collectionSize),
+                ArrayOfInt = GetArrayOfInt(collectionSize)
             };
+        }
+
+        public static List<string> GetListOfRandomStrings(int length = 100, int lengthOfString = 10)
+        {
+            var list = new List<string>();
+
+            for (int i = 0; i <= length; i++)
+            {
+                list.Add(RandomString(lengthOfString));
+            }
+
+            return list;
+        }
+
+        public static int[] GetArrayOfInt(int length = 100)
+        {
+            int[] arr = new int[length];
+            for (int i = 0; i <= arr.Length - 1; i++)
+            {
+                arr[i] = i;
+            }
+
+            return arr;
         }
     }
 }
