@@ -18,6 +18,7 @@ namespace CompareThis.UnitTests
         public void TestInit()
         {
             Class = DataGenerator.GetFilledUpClassWithOtherClasses();
+            Class.ManyPropClass.Str4 = Filter;
         }
 
         [TestMethod]
@@ -36,6 +37,14 @@ namespace CompareThis.UnitTests
         public void CompareThisReturnsTrue_CheckNullableClass()
         {
             Assert.IsTrue(CompareThisFunc(Class, Class.ClassWithNullables.NullableInt.ToString()));
+        }
+
+        [TestMethod]
+        public void AnClassIsNull()
+        {
+            Class.BaseClass = null;
+
+            Assert.IsTrue(CompareThisFunc(Class, Filter));
         }
     }
 }

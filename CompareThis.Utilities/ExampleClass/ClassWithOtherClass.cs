@@ -17,7 +17,7 @@
 
         public bool Filter(string filter)
         {
-            return (BaseClass.Filter(filter) || ManyPropClass.Filter(filter) || ClassWithNullables.Filter(filter)
+            return (BaseClass?.Filter(filter) == true || ManyPropClass?.Filter(filter) == true || ClassWithNullables?.Filter(filter) == true
                 ||
                 (string.IsNullOrEmpty(filter) == false && (SomeInt.ToString().Contains(filter) || SomeString.Contains(filter))));
         }

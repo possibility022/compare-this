@@ -31,7 +31,7 @@ namespace CompareThis
             for (int i = 0; i < prop.Length; i++)
             {
                 var propExpressions = Expression.Property(parameterSomeClass, prop[i]);
-                finalPropertyCompare[i] = typeExpression.GetExpression(prop[i].PropertyType, parameterFilter, propExpressions);
+                finalPropertyCompare[i] = typeExpression.WriteLineWrapper_Debugger(typeExpression.GetExpression(prop[i].PropertyType, parameterFilter, propExpressions), prop[i].PropertyType, prop[i].Name);
             }
 
             Expression final;

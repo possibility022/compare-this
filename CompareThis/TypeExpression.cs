@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CompareThis.Helpers;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,25 +8,6 @@ using System.Reflection;
 
 namespace CompareThis
 {
-
-    class DebugHelper
-    {
-        public void WriteLine(string value)
-        {
-            Console.WriteLine(value);
-        }
-
-        public void WriteLine(int value)
-        {
-            Console.WriteLine(value);
-        }
-
-        public void WriteLine(bool value)
-        {
-            Console.WriteLine(value);
-        }
-    }
-
     public class TypeExpression
     {
         // Methods to call.
@@ -40,16 +22,40 @@ namespace CompareThis
         // bool.ToString()
         public MethodInfo BoolToStringMethod { get; } = typeof(bool).GetMethod("ToString", new Type[] { });
         // Console.WriteLine()
-        public MethodInfo ConsoleWriteLine { get; } = typeof(DebugHelper).GetMethod("WriteLine", new Type[] { typeof(int) });
+        public MethodInfo ConsoleWriteLine_Int { get; } = typeof(DebugHelper).GetMethod("WriteLine", new Type[] { typeof(int) });
+        public MethodInfo ConsoleWriteLine_String { get; } = typeof(DebugHelper).GetMethod("WriteLine", new Type[] { typeof(string) });
         public MethodInfo ConsoleWriteLine_Bool { get; } = typeof(DebugHelper).GetMethod("WriteLine", new Type[] { typeof(bool) });
 
-
-
+        
         public Expression ConstantZero { get; } = Expression.Constant(0);
         public Expression ConstantOne { get; } = Expression.Constant(1);
         public Expression ConstantNull { get; } = Expression.Constant(null);
         public Expression ConstantTrue { get; } = Expression.Constant(true);
         public Expression ConstantFalse { get; } = Expression.Constant(false);
+
+
+        public Expression WriteLineWrapper_Debugger(Expression expression, Type type, string propertyName)
+        {
+#if DEBUG
+            var con = Expression.Constant($"CompareThis: {propertyName} - {type.FullName}", typeof(string));
+            var returnTarget = Expression.Label(typeof(bool));
+            var returnExpression = Expression.Return(returnTarget, expression, typeof(bool));
+            var returnLabel = Expression.Label(returnTarget, ConstantFalse);
+
+            var blockExpr =
+                Expression.Block(
+                    Expression.Call(Expression.New(typeof(DebugHelper)), ConsoleWriteLine_String, con),
+                    returnExpression,
+                    returnLabel
+                );
+
+            return blockExpr;
+            return expression;
+#else
+            return expression;
+#endif
+        }
+
 
         /// <summary>
         /// 
@@ -100,7 +106,8 @@ namespace CompareThis
                     .GetMethod("BuildContainsExpr", new Type[] { typeof(Expression), typeof(Expression) });
 
                 var genericMethod = method.MakeGenericMethod(type);
-                return (Expression)genericMethod.Invoke(null, new object[] { value, stringValue });
+                
+                return Expression.AndAlso(Expression.NotEqual(value, ConstantNull), (Expression)genericMethod.Invoke(null, new object[] { value, stringValue }));
             }
             else
             {
@@ -139,7 +146,7 @@ namespace CompareThis
             var loop = Expression.Block(new[] { i, length },
                 Expression.Assign(length, lengthPropExpression),
                 Expression.Assign(i, ConstantZero),
-                Expression.Call(Expression.New(typeof(DebugHelper)), ConsoleWriteLine, length),
+                //Expression.Call(Expression.New(typeof(DebugHelper)), ConsoleWriteLine_Int, length),
                 Expression.Loop(
                     Expression.IfThenElse(
                         Expression.LessThan(i, length),
@@ -150,7 +157,7 @@ namespace CompareThis
                             Expression.Assign(i, Expression.Add(i, ConstantOne))
                         ),
                         Expression.Block(new[] { i },
-                        Expression.Call(Expression.New(typeof(DebugHelper)), ConsoleWriteLine, ConstantOne),
+                        //Expression.Call(Expression.New(typeof(DebugHelper)), ConsoleWriteLine_Int, ConstantOne),
                         Expression.Return(breakLabel, ConstantFalse)
                         )
                     ),
@@ -212,7 +219,7 @@ namespace CompareThis
         public Expression GetIntExpression(Expression filter, Expression integer)
         {
             var callIntToString = Expression.Call(integer, IntToStringMethod);
-            return Expression.Call(callIntToString, StringContainsMethod, filter);
+            return Expression.IsTrue(Expression.Call(callIntToString, StringContainsMethod, filter));
         }
 
         public Expression GetStringExpression(Expression filter, Expression str)

@@ -46,7 +46,7 @@ namespace CompareThis.Utilities.DataGenerator
                     Str1 = "Some String number one ;)",
                     Str2 = "Some string number two :D",
                     Str3 = "mambo number five",
-                    Str4 = "uga buga buga u FILTER!"
+                    Str4 = "uga buga buga u "
                 },
 
                 ClassWithCollection = GetClassWithCollection(),
