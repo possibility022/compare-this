@@ -8,13 +8,16 @@ namespace CompareThis
         public static Expression BuildContainsExpr<T>(
             Expression parameterSomeClass,
             Expression parameterFilter,
-            bool checkFilter)
+            Settings settings = null,
+            bool checkFilter = false)
         {
             // Declaring constant
             var constantNull = Expression.Constant(null);
             var filterIsNotNull = Expression.NotEqual(parameterFilter, constantNull);
 
-            var contains = BuildContainsExpr<T>(parameterSomeClass, parameterFilter);
+            var typeExpression = new TypeExpression(settings);
+
+            var contains = BuildContainsExpr<T>(parameterSomeClass, parameterFilter, typeExpression);
 
             if (checkFilter)
                 return Expression.AndAlso(filterIsNotNull, contains);
@@ -24,7 +27,8 @@ namespace CompareThis
 
         public static Expression BuildContainsExpr<T>(
             Expression parameterSomeClass,
-            Expression parameterFilter)
+            Expression parameterFilter,
+            TypeExpression typeExpression)
         {
             // List of properites
             var prop = typeof(T).GetProperties();
@@ -35,9 +39,9 @@ namespace CompareThis
             for (int i = 0; i < prop.Length; i++)
             {
                 var propExpressions = Expression.Property(parameterSomeClass, prop[i]);
-                finalPropertyCompare[i] = TypeExpression
-                    .Instance.WriteLineWrapper_Debugger(
-                    TypeExpression.Instance.GetExpression(
+                finalPropertyCompare[i] = 
+                    typeExpression.WriteLineWrapper_Debugger(
+                    typeExpression.GetExpression(
                         prop[i].PropertyType, parameterFilter, propExpressions)
                         , prop[i].PropertyType, prop[i].Name);
             }
@@ -64,12 +68,12 @@ namespace CompareThis
             return final;
         }
 
-        public static Func<T, string, bool> BuildContainsFunc<T>()
+        public static Func<T, string, bool> BuildContainsFunc<T>(Settings settings = null)
         {
             // Declaring parameters
             var parameterSomeClass = Expression.Parameter(typeof(T), "someclass");
             var parameterFilter = Expression.Parameter(typeof(string), "filter");
-            var final = BuildContainsExpr<T>(parameterSomeClass, parameterFilter);
+            var final = BuildContainsExpr<T>(parameterSomeClass, parameterFilter, settings, true);
             return Expression.Lambda<Func<T, string, bool>>(final, parameterSomeClass, parameterFilter).Compile();
         }
     }

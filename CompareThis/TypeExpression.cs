@@ -11,8 +11,19 @@ namespace CompareThis
 {
     public class TypeExpression
     {
+        public TypeExpression() : this(new Settings()) { }
 
-        public static TypeExpression Instance { get; } = new TypeExpression();
+        public TypeExpression(Settings settings)
+        {
+            _settings = settings;
+
+            ConstantIgnoreCase = Expression.Constant(_settings.StringCompareOptions);
+            ConstantCompareInfo = Expression.Constant(_settings.StringCompareInfo);
+            ConstantDateTimeToStringFormat = Expression.Constant(_settings.DateTimeToStringFormat);
+        }
+
+        private Settings _settings;
+
 
         // Methods to call.
         // string.Contains(param)
@@ -22,7 +33,7 @@ namespace CompareThis
         // int.ToString()
         public MethodInfo IntToStringMethod { get; } = typeof(int).GetMethod("ToString", new Type[] { });
         // DateTimeToString()
-        public MethodInfo DateTimeToString { get; } = typeof(DateTime).GetMethod("ToString", new Type[] { });
+        public MethodInfo DateTimeToString { get; } = typeof(DateTime).GetMethod("ToString", new Type[] { typeof(string) });
         // byte.ToString()
         public MethodInfo ByteToStringMethod { get; } = typeof(byte).GetMethod("ToString", new Type[] { });
         // bool.ToString()
@@ -38,13 +49,13 @@ namespace CompareThis
         public Expression ConstantNull { get; } = Expression.Constant(null);
         public Expression ConstantTrue { get; } = Expression.Constant(true);
         public Expression ConstantFalse { get; } = Expression.Constant(false);
-        public Expression ConstantIgnoreCase { get; } = Expression.Constant(CompareOptions.IgnoreCase);
-        public Expression ConstantCompareInfo { get; } = Expression.Constant(CultureInfo.CurrentCulture.CompareInfo);
+        public Expression ConstantIgnoreCase { get; }
+        public Expression ConstantCompareInfo { get; }
+        public Expression ConstantDateTimeToStringFormat { get; }
 
 
         public Expression WriteLineWrapper_Debugger(Expression expression, Type type, string propertyName)
         {
-            CultureInfo.CurrentCulture.CompareInfo.IndexOf("S", "S", CompareOptions.IgnoreCase);
 #if DEBUG
             var con = Expression.Constant($"CompareThis: {propertyName} - {type.FullName}", typeof(string));
             var returnTarget = Expression.Label(typeof(bool));
@@ -54,6 +65,27 @@ namespace CompareThis
             var blockExpr =
                 Expression.Block(
                     Expression.Call(Expression.New(typeof(DebugHelper)), ConsoleWriteLine_String, con),
+                    returnExpression,
+                    returnLabel
+                );
+
+            return blockExpr;
+            return expression;
+#else
+            return expression;
+#endif
+        }
+
+        public Expression WriteLineWrapper_Debugger(Expression stringValue, Expression expression)
+        {
+#if DEBUG
+            var returnTarget = Expression.Label(typeof(bool));
+            var returnExpression = Expression.Return(returnTarget, expression, typeof(bool));
+            var returnLabel = Expression.Label(returnTarget, ConstantFalse);
+
+            var blockExpr =
+                Expression.Block(
+                    Expression.Call(Expression.New(typeof(DebugHelper)), ConsoleWriteLine_String, stringValue),
                     returnExpression,
                     returnLabel
                 );
@@ -122,7 +154,7 @@ namespace CompareThis
 
                 var genericMethod = method.MakeGenericMethod(type);
 
-                return Expression.AndAlso(Expression.NotEqual(value, ConstantNull), (Expression)genericMethod.Invoke(null, new object[] { value, stringValue }));
+                return Expression.AndAlso(Expression.NotEqual(value, ConstantNull), (Expression)genericMethod.Invoke(null, new object[] { value, stringValue, this }));
             }
             else
             {
@@ -240,12 +272,12 @@ namespace CompareThis
         public Expression GetStringExpression(Expression filter, Expression str)
         {
             var propIsNotNull = Expression.NotEqual(str, ConstantNull);
-            return Expression.AndAlso(propIsNotNull, StringContains(str,filter));
+            return Expression.AndAlso(propIsNotNull, StringContains(str, filter));
         }
 
         public Expression GetDateTimeExpression(Expression filter, Expression dateTime)
         {
-            var callDateTimeToString = Expression.Call(dateTime, DateTimeToString);
+            var callDateTimeToString = Expression.Call(dateTime, DateTimeToString, ConstantDateTimeToStringFormat);
             return StringContains(callDateTimeToString, filter);
         }
     }
