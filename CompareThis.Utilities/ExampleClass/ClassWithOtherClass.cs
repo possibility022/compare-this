@@ -10,6 +10,8 @@
 
         public ClassWithNullables ClassWithNullables { get; set; }
 
+        public ClassWithOtherClass ClassWithOtherClassProp { get; set; }
+
         public int SomeInt { get; set; }
 
         public string SomeString { get; set; }

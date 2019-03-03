@@ -11,11 +11,12 @@ namespace CompareThis
 {
     public class TypeExpression
     {
-        public TypeExpression() : this(new Settings()) { }
-
         public TypeExpression(Settings settings)
         {
-            _settings = settings;
+            if (settings == null)
+                _settings = new Settings();
+            else
+                _settings = settings;
 
             ConstantIgnoreCase = Expression.Constant(_settings.StringCompareOptions);
             ConstantCompareInfo = Expression.Constant(_settings.StringCompareInfo);
@@ -111,8 +112,11 @@ namespace CompareThis
         /// <param name="stringValue">For example filter.</param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public Expression GetExpression(Type type, Expression stringValue, Expression value)
+        public Expression GetExpression(Type type, Expression stringValue, Expression value, int deep)
         {
+            if (deep > _settings.Deep)
+                return null;
+
             if (type == typeof(int))
             {
                 return GetIntExpression(stringValue, value);
@@ -131,7 +135,7 @@ namespace CompareThis
             }
             else if (type.IsArray)
             {
-                return GetArrayExpression(type, stringValue, value);
+                return GetArrayExpression(type, stringValue, value, ref deep);
             }
             else if (type == typeof(bool))
             {
@@ -139,22 +143,25 @@ namespace CompareThis
             }
             else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
             {
-                return GetNullableExpression(type, stringValue, value);
+                return GetNullableExpression(type, stringValue, value, ref deep);
             }
             else if (
                 type.GetInterfaces()
                 .Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEnumerable<>)))
             {
-                return GetEnumerableExpression(stringValue, value, type);
+                return GetEnumerableExpression(stringValue, value, type, ref deep);
             }
             else if (type.IsClass)
             {
+                if (deep + 1 > _settings.Deep)
+                    return null;
+
                 var method = typeof(CompareFactory)
-                    .GetMethod("BuildContainsExpr", new Type[] { typeof(Expression), typeof(Expression) });
+                    .GetMethod("BuildContainsExpr", new Type[] { typeof(Expression), typeof(Expression), typeof(TypeExpression), typeof(int) });
 
                 var genericMethod = method.MakeGenericMethod(type);
 
-                return Expression.AndAlso(Expression.NotEqual(value, ConstantNull), (Expression)genericMethod.Invoke(null, new object[] { value, stringValue, this }));
+                return Expression.AndAlso(Expression.NotEqual(value, ConstantNull), (Expression)genericMethod.Invoke(null, new object[] { value, stringValue, this, deep + 1 }));
             }
             else
             {
@@ -162,7 +169,7 @@ namespace CompareThis
             }
         }
 
-        public Expression GetNullableExpression(Type type, Expression stringValue, Expression value)
+        public Expression GetNullableExpression(Type type, Expression stringValue, Expression value, ref int deep)
         {
             var hasValueProperty = type.GetProperty("HasValue");
             var valueProperty = type.GetProperty("Value");
@@ -172,10 +179,10 @@ namespace CompareThis
 
             return Expression.AndAlso(
                 hasValuePropertyExpression, // LEFT
-                GetExpression(Nullable.GetUnderlyingType(type), stringValue, valuePropertyExpressionExpression)); // RIGHT
+                GetExpression(Nullable.GetUnderlyingType(type), stringValue, valuePropertyExpressionExpression, deep)); // RIGHT
         }
 
-        private Expression GetArrayExpression(Type type, Expression filter, Expression array)
+        private Expression GetArrayExpression(Type type, Expression filter, Expression array, ref int deep)
         {
             var arrayContentType = type.GetElementType();
 
@@ -186,7 +193,7 @@ namespace CompareThis
             var condition = Expression.LessThan(i, length);
             var value = Expression.ArrayAccess(array, i);
 
-            var loopContent = GetExpression(arrayContentType, filter, value);
+            var loopContent = GetExpression(arrayContentType, filter, value, deep);
 
             var breakLabel = Expression.Label(typeof(bool));
 
@@ -226,7 +233,7 @@ namespace CompareThis
             return StringContains(callByteToString, filter);
         }
 
-        public Expression GetEnumerableExpression(Expression filter, Expression collection, Type collectionType)
+        public Expression GetEnumerableExpression(Expression filter, Expression collection, Type collectionType, ref int deep)
         {
             var genericType = collectionType.GetGenericArguments()[0];
             var enumerableType = typeof(IEnumerable<>).MakeGenericType(genericType);
@@ -238,7 +245,7 @@ namespace CompareThis
             var getEnumeratorCall = Expression.Call(collection, enumerableType.GetMethod("GetEnumerator"));
             var enumeratorAssign = Expression.Assign(enumeratorVar, getEnumeratorCall);
 
-            var contectOfLoop = GetExpression(genericType, filter, value);
+            var contectOfLoop = GetExpression(genericType, filter, value, deep);
 
             var moveNextCall = Expression.Call(enumeratorVar, typeof(IEnumerator).GetMethod("MoveNext"));
 

@@ -19,7 +19,7 @@ The library is supporting simple models/classes where all properties are public.
     <PackageProjectUrl>https://github.com/possibility022/compare-this</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/possibility022/compare-this/blob/master/LICENSE</PackageLicenseUrl>
     <Copyright>Tomasz Bąk</Copyright>
-    <Version>0.0.9.3</Version>
+    <Version>0.0.9.4</Version>
   </PropertyGroup>
 
 </Project>

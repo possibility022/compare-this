@@ -8,6 +8,8 @@ namespace CompareThis
 
         public CompareInfo StringCompareInfo { get; set; } = CultureInfo.CurrentCulture.CompareInfo;
 
-        public string DateTimeToStringFormat { get; set; } = "dd/MM/yyyy HH:mm";
+        public string DateTimeToStringFormat { get; set; } = string.Empty;
+
+        public int Deep { get; set; } = 20;
     }
 }
