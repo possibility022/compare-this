@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Linq.Expressions;
 
 namespace CompareThis
@@ -8,17 +7,22 @@ namespace CompareThis
     {
         public static Expression BuildContainsExpr<T>(
             Expression parameterSomeClass,
-            Expression parameterFilter)
+            Expression parameterFilter,
+            bool checkFilter)
         {
             // Declaring constant
             var constantNull = Expression.Constant(null);
             var filterIsNotNull = Expression.NotEqual(parameterFilter, constantNull);
 
-            var contains = BuildContainsExpr<T>(new TypeExpression(), parameterSomeClass, parameterFilter);
-            return Expression.AndAlso(filterIsNotNull, contains);
+            var contains = BuildContainsExpr<T>(parameterSomeClass, parameterFilter);
+
+            if (checkFilter)
+                return Expression.AndAlso(filterIsNotNull, contains);
+            else
+                return contains;
         }
 
-        public static Expression BuildContainsExpr<T>(TypeExpression typeExpression, 
+        public static Expression BuildContainsExpr<T>(
             Expression parameterSomeClass,
             Expression parameterFilter)
         {
@@ -31,7 +35,11 @@ namespace CompareThis
             for (int i = 0; i < prop.Length; i++)
             {
                 var propExpressions = Expression.Property(parameterSomeClass, prop[i]);
-                finalPropertyCompare[i] = typeExpression.WriteLineWrapper_Debugger(typeExpression.GetExpression(prop[i].PropertyType, parameterFilter, propExpressions), prop[i].PropertyType, prop[i].Name);
+                finalPropertyCompare[i] = TypeExpression
+                    .Instance.WriteLineWrapper_Debugger(
+                    TypeExpression.Instance.GetExpression(
+                        prop[i].PropertyType, parameterFilter, propExpressions)
+                        , prop[i].PropertyType, prop[i].Name);
             }
 
             Expression final;

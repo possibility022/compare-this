@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -10,9 +11,14 @@ namespace CompareThis
 {
     public class TypeExpression
     {
+
+        public static TypeExpression Instance { get; } = new TypeExpression();
+
         // Methods to call.
         // string.Contains(param)
         public MethodInfo StringContainsMethod { get; } = typeof(string).GetMethod("Contains", new Type[] { typeof(string) });
+        public MethodInfo StringContainsIngnoreCase { get; } = typeof(CompareInfo).GetMethod("IndexOf", new Type[] { typeof(string), typeof(string), typeof(CompareOptions) });
+
         // int.ToString()
         public MethodInfo IntToStringMethod { get; } = typeof(int).GetMethod("ToString", new Type[] { });
         // DateTimeToString()
@@ -26,16 +32,19 @@ namespace CompareThis
         public MethodInfo ConsoleWriteLine_String { get; } = typeof(DebugHelper).GetMethod("WriteLine", new Type[] { typeof(string) });
         public MethodInfo ConsoleWriteLine_Bool { get; } = typeof(DebugHelper).GetMethod("WriteLine", new Type[] { typeof(bool) });
 
-        
+
         public Expression ConstantZero { get; } = Expression.Constant(0);
         public Expression ConstantOne { get; } = Expression.Constant(1);
         public Expression ConstantNull { get; } = Expression.Constant(null);
         public Expression ConstantTrue { get; } = Expression.Constant(true);
         public Expression ConstantFalse { get; } = Expression.Constant(false);
+        public Expression ConstantIgnoreCase { get; } = Expression.Constant(CompareOptions.IgnoreCase);
+        public Expression ConstantCompareInfo { get; } = Expression.Constant(CultureInfo.CurrentCulture.CompareInfo);
 
 
         public Expression WriteLineWrapper_Debugger(Expression expression, Type type, string propertyName)
         {
+            CultureInfo.CurrentCulture.CompareInfo.IndexOf("S", "S", CompareOptions.IgnoreCase);
 #if DEBUG
             var con = Expression.Constant($"CompareThis: {propertyName} - {type.FullName}", typeof(string));
             var returnTarget = Expression.Label(typeof(bool));
@@ -54,6 +63,12 @@ namespace CompareThis
 #else
             return expression;
 #endif
+        }
+
+        private Expression StringContains(Expression searchIn, Expression value)
+        {
+            var contains = Expression.Call(ConstantCompareInfo, StringContainsIngnoreCase, searchIn, value, ConstantIgnoreCase);
+            return Expression.GreaterThanOrEqual(contains, ConstantZero);
         }
 
 
@@ -106,7 +121,7 @@ namespace CompareThis
                     .GetMethod("BuildContainsExpr", new Type[] { typeof(Expression), typeof(Expression) });
 
                 var genericMethod = method.MakeGenericMethod(type);
-                
+
                 return Expression.AndAlso(Expression.NotEqual(value, ConstantNull), (Expression)genericMethod.Invoke(null, new object[] { value, stringValue }));
             }
             else
@@ -170,13 +185,13 @@ namespace CompareThis
         public Expression GetBoolExpression(Expression filter, Expression @bool)
         {
             var callBoolToString = Expression.Call(@bool, BoolToStringMethod);
-            return Expression.Call(callBoolToString, StringContainsMethod, filter);
+            return StringContains(callBoolToString, filter);
         }
 
         public Expression GetByteExpression(Expression filter, Expression @byte)
         {
             var callByteToString = Expression.Call(@byte, ByteToStringMethod);
-            return Expression.Call(callByteToString, StringContainsMethod, filter);
+            return StringContains(callByteToString, filter);
         }
 
         public Expression GetEnumerableExpression(Expression filter, Expression collection, Type collectionType)
@@ -219,20 +234,19 @@ namespace CompareThis
         public Expression GetIntExpression(Expression filter, Expression integer)
         {
             var callIntToString = Expression.Call(integer, IntToStringMethod);
-            return Expression.IsTrue(Expression.Call(callIntToString, StringContainsMethod, filter));
+            return StringContains(callIntToString, filter);
         }
 
         public Expression GetStringExpression(Expression filter, Expression str)
         {
             var propIsNotNull = Expression.NotEqual(str, ConstantNull);
-            var callContains = Expression.Call(str, StringContainsMethod, filter);
-            return Expression.AndAlso(propIsNotNull, callContains);
+            return Expression.AndAlso(propIsNotNull, StringContains(str,filter));
         }
 
         public Expression GetDateTimeExpression(Expression filter, Expression dateTime)
         {
             var callDateTimeToString = Expression.Call(dateTime, DateTimeToString);
-            return Expression.Call(callDateTimeToString, StringContainsMethod, filter);
+            return StringContains(callDateTimeToString, filter);
         }
     }
 }
