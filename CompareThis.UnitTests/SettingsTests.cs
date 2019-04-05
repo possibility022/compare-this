@@ -1,4 +1,5 @@
-﻿using CompareThis.Utilities.DataGenerator;
+﻿using CompareThis.Exceptions;
+using CompareThis.Utilities.DataGenerator;
 using CompareThis.Utilities.ExampleClass;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -13,6 +14,7 @@ namespace CompareThis.UnitTests
         Func<ClassWithOtherClass, string, bool> FilterFunc_ClassWithOtherClasses;
         BasicClass basicClass = new BasicClass();
         string filter;
+        const string dateTimeFormat = "MM/dd/yyyy hh:mm tt";
 
         [TestInitialize]
         public void TestInit()
@@ -22,6 +24,10 @@ namespace CompareThis.UnitTests
                 DateTimeProperty = new DateTime(2001, 12, 2, 8, 12, 23, 0)
             };
             filter = "12.02.2001 08:12 AM";
+
+            if (filter != basicClass.DateTimeProperty.Value.ToString(dateTimeFormat))
+                throw new Exception("woops");
+
         }
 
         [TestMethod]
@@ -29,7 +35,7 @@ namespace CompareThis.UnitTests
         {
             var settings = new Settings()
             {
-                DateTimeToStringFormat = "MM/dd/yyyy hh:mm tt"
+                DateTimeToStringFormat = dateTimeFormat
             };
 
             FilterFunc_BasicFunc = CompareFactory.BuildContainsFunc<BasicClass>(settings);
@@ -93,7 +99,7 @@ namespace CompareThis.UnitTests
         {
             var settings = new Settings()
             {
-                Deep = 5
+                Deep = 4
             };
 
             var classLvl0 = DataGenerator.GetFilledUpClassWithOtherClasses();
@@ -113,5 +119,51 @@ namespace CompareThis.UnitTests
             Assert.IsFalse(FilterFunc_ClassWithOtherClasses(classLvl0, "Filter!!!!"));
         }
 
+        [TestMethod]
+        public void TestWhiteList_TypeIsOnTheList()
+        {
+            var set = new Settings();
+            set.AddPropertyToWhiteList(typeof(DateTime?));
+            set.DateTimeToStringFormat = dateTimeFormat;
+
+            var func = CompareFactory.BuildContainsFunc<BasicClass>(set);
+
+            Assert.IsTrue(func(basicClass, filter));
+        }
+
+        [TestMethod]
+        public void TestWhiteList_TypeIsNOTonTheList()
+        {
+            var set = new Settings();
+            set.AddPropertyToWhiteList(typeof(string));
+
+            var func = CompareFactory.BuildContainsFunc<BasicClass>(set);
+
+            Assert.IsFalse(func(basicClass, filter));
+        }
+
+        [TestMethod]
+        public void TestBlackList_TypeIsOnTheList()
+        {
+            var set = new Settings();
+            set.DateTimeToStringFormat = dateTimeFormat;
+            set.AddPropertyToBlackList(typeof(DateTime));
+
+            var func = CompareFactory.BuildContainsFunc<BasicClass>(set);
+
+            Assert.IsFalse(func(basicClass, filter));
+        }
+
+        [TestMethod]
+        public void TestBlackList_TypeIsNOTonTheList()
+        {
+            var set = new Settings();
+            set.DateTimeToStringFormat = dateTimeFormat;
+            set.AddPropertyToBlackList(typeof(string));
+
+            var func = CompareFactory.BuildContainsFunc<BasicClass>(set);
+
+            Assert.IsTrue(func(basicClass, filter));
+        }
     }
 }

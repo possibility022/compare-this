@@ -23,7 +23,7 @@ namespace CompareThis.Utilities.DataGenerator
                 .All()
                     .With(c => c.StringProperty = null)
                 .Random(count - (count * (25 / 100)))
-                    .With(c => c.StringProperty = Faker.Lorem.Sentence(90))
+                    .With(c => c.StringProperty)
                     .With(c => c.DateTimeProperty = null)
                 .Build();
         }

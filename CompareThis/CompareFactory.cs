@@ -47,14 +47,18 @@ namespace CompareThis
                 if (expression != null)
                 {
                     finalPropertyCompare.Add(
-                        typeExpression.WriteLineWrapper_Debugger(expression
-                            , prop[i].PropertyType, prop[i].Name));
+                        typeExpression.WriteLineWrapper_Debugger(
+                            expression, prop[i].PropertyType, prop[i].Name));
                 }
             }
 
             Expression final;
 
-            if (finalPropertyCompare.Count == 1)
+            if (finalPropertyCompare.Count == 0)
+            {
+                return Expression.Constant(false); //ToDo handle this
+            }
+            else if (finalPropertyCompare.Count == 1)
             {
                 final = finalPropertyCompare[0];
             }

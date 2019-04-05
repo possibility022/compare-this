@@ -22,13 +22,13 @@ namespace CompareThis.UnitTests
         IList<BasicClass> ListToCheck = DataGenerator.GetBasicClass(200);
         Func<BasicClass, string, bool> FunctionToTest;
 
-        string Filter;
+        const string Filter = "!FILTER!";
 
         [TestInitialize]
         public void TestInitialize()
         {
             FunctionToTest = CompareFactory.BuildContainsFunc<BasicClass>();
-            Filter = ListToCheck[ListToCheck.Count - 1].StringProperty;
+            ListToCheck[ListToCheck.Count - 1].StringProperty = Filter;
         }
         
         [TestMethod]

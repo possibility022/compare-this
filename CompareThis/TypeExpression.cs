@@ -98,11 +98,53 @@ namespace CompareThis
 #endif
         }
 
+        private bool CanGenerateForThisProperty(Type type)
+        {
+
+            if (type != typeof(string) && // Well, for string we have a special method.
+                (type.BaseType != null && type.IsArray == false) && // It it is an array then we have to check of which type is this array.
+                type
+                .GetInterfaces()
+                .Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEnumerable<>)))
+            {
+                type = type.GetGenericArguments()[0];
+            }
+            else if (type.IsArray)
+            {
+                new DebugHelper().WriteLine(type.GetElementType().ToString());
+            }
+
+            if (TypeGetters.CheckIfTypeIsNullable(type))
+                type = Nullable.GetUnderlyingType(type);
+
+            if (_settings.BlackListProperties != null)
+            {
+                if (_settings.BlackListProperties.Contains(type))
+                    return false;
+                else
+                    return true;
+            }
+            else
+            if (_settings.WhiteListProperties != null)
+            {
+                if (_settings.WhiteListProperties.Contains(type))
+                    return true;
+                else
+                    return false;
+            }
+
+            return true;
+        }
+
         private Expression StringContains(Expression searchIn, Expression value)
         {
             var contains = Expression.Call(ConstantCompareInfo, StringContainsIngnoreCase, searchIn, value, ConstantIgnoreCase);
             return Expression.GreaterThanOrEqual(contains, ConstantZero);
         }
+
+
+        public Expression GetExpression(Type type, Expression stringValue, Expression value, int deep)
+        => GetExpression(type, stringValue, value, deep, false);
 
 
         /// <summary>
@@ -112,9 +154,10 @@ namespace CompareThis
         /// <param name="stringValue">For example filter.</param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public Expression GetExpression(Type type, Expression stringValue, Expression value, int deep)
+        public Expression GetExpression(Type type, Expression stringValue, Expression value, int deep, bool ignoreTypeCheck)
         {
-            if (deep > _settings.Deep)
+
+            if (!ignoreTypeCheck && CanGenerateForThisProperty(type) == false)
                 return null;
 
             if (type == typeof(int))
@@ -141,7 +184,7 @@ namespace CompareThis
             {
                 return GetBoolExpression(stringValue, value);
             }
-            else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            else if (TypeGetters.CheckIfTypeIsNullable(type))
             {
                 return GetNullableExpression(type, stringValue, value, ref deep);
             }

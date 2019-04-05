@@ -11,15 +11,15 @@
 The library is using reflection to get all properties and build an expression tree which will check all properties for a given text.
 The library is supporting simple models/classes where all properties are public.
 </Description>
-    <AssemblyVersion>1.0.3.0</AssemblyVersion>
-    <FileVersion>1.0.3.0</FileVersion>
-    <PackageReleaseNotes>First release.</PackageReleaseNotes>
+    <AssemblyVersion>1.0.4.0</AssemblyVersion>
+    <FileVersion>1.0.4.0</FileVersion>
+    <PackageReleaseNotes>Adding a settings  where a list of types can be add to the white list or to the black list.</PackageReleaseNotes>
     <RepositoryUrl>https://github.com/possibility022/compare-this</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
     <PackageProjectUrl>https://github.com/possibility022/compare-this</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/possibility022/compare-this/blob/master/LICENSE</PackageLicenseUrl>
     <Copyright>Tomasz Bąk</Copyright>
-    <Version>0.0.9.4</Version>
+    <Version>0.0.9.5</Version>
   </PropertyGroup>
 
 </Project>
